@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "WOcbfOWHUW0=",
+  "dgSpecHash": "vkxc8s2Klog=",
   "success": true,
   "projectFilePath": "C:\\xampp\\htdocs\\cost-estimate-app\\backend\\backend.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\patrick.torres\\.nuget\\packages\\aspnetcore.healthchecks.sqlserver\\9.0.0\\aspnetcore.healthchecks.sqlserver.9.0.0.nupkg.sha512",
     "C:\\Users\\patrick.torres\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\patrick.torres\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",
     "C:\\Users\\patrick.torres\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
