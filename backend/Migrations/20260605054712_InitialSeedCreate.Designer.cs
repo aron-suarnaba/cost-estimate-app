@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -10,10 +11,12 @@ using backend.Data;
 
 namespace backend.Migrations
 {
-    [DbContext(typeof(CostEstimateDbContext))]
-    partial class CostEstimateContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(CostEstimateContext))]
+    [Migration("20260605054712_InitialSeedCreate")]
+    partial class InitialSeedCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

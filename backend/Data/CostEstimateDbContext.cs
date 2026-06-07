@@ -5,9 +5,9 @@ using backend.Models;
 
 namespace backend.Data;
 
-public class CostEstimateContext : DbContext
+public class CostEstimateDbContext : DbContext
 {
-    public CostEstimateContext(DbContextOptions<CostEstimateContext> options)
+    public CostEstimateDbContext(DbContextOptions<CostEstimateDbContext> options)
         : base(options)
     {
     }
@@ -22,17 +22,11 @@ public class CostEstimateContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Item>().HasKey(i => i.ItemCode);
-    
-        // If PType is the unique ID:
         modelBuilder.Entity<Ptype>().HasKey(p => p.PType);
-        
-        // If Vendnum is the unique ID:
         modelBuilder.Entity<Vendors>().HasKey(v => v.Vendnum);
-
-        // For PaperBoardPricing (likely a Composite Key since you have multiple columns)
         modelBuilder.Entity<PaperBoardPricing>().HasKey(p => new { p.PType, p.Vendor, p.ItemCode });
 
-        var seedDate = new DateTime(2024, 5, 29); 
+        var seedDate = new DateTime(2024, 5, 29);
         var sysUser = "SystemSeed";
 
         // 1. Seed PType
@@ -43,7 +37,6 @@ public class CostEstimateContext : DbContext
             new Ptype { PType = "C1S", PtypeDesc = "C1S", DescLabel = "C1S", CreateDate = seedDate, CreatedBy = sysUser },
             new Ptype { PType = "C2S", PtypeDesc = "C2S", DescLabel = "C2S", CreateDate = seedDate, CreatedBy = sysUser },
             new Ptype { PType = "FC", PtypeDesc = "Foldcote", DescLabel = "Foldcote", CreateDate = seedDate, CreatedBy = sysUser }
-            // Add remaining PTypes following this exact pattern...
         );
 
         // 2. Seed Vendors
@@ -52,7 +45,8 @@ public class CostEstimateContext : DbContext
             new Vendors { Vendnum = "IGSEPCL", Group = "IMPORTED", Name = "STORA ENSO (GUANGXI) PACKAGING", Currcode = "USD", CreateDate = seedDate, CreatedBy = sysUser },
             new Vendors { Vendnum = "IGOFSNL", Group = "IMPORTED", Name = "OJI FIBRE SOLUTIONS (NZ) LIMITED", Currcode = "USD", CreateDate = seedDate, CreatedBy = sysUser },
             new Vendors { Vendnum = "IGSPHK2", Group = "IMPORTED", Name = "SAPPI PAPIER HOLDING GmBh", Currcode = "USD", CreateDate = seedDate, CreatedBy = sysUser },
-            new Vendors { Vendnum = "UNASSIGNED", Group = "NONE", Name = "Pending Vendor Assignment", Currcode = "PHP", CreateDate = seedDate, CreatedBy = sysUser } // Fallback for blank PKs
+            // CHANGED: "UNASSIGNED" shortened to "UNASGND" (7 characters) to fit tight column constraints
+            new Vendors { Vendnum = "UNASGND", Group = "NONE", Name = "Pending Vendor Assignment", Currcode = "PHP", CreateDate = seedDate, CreatedBy = sysUser }
         );
 
         // 3. Seed Items
@@ -64,7 +58,6 @@ public class CostEstimateContext : DbContext
             new Item { ProdGroup = "PAPER", PType = "C1S", ItemCode = "C1S008500250028S", ItemDesc = "C1S Paper 85 GSM", UM = "SH", GSM = 85, Width = 25m, Length = 38m, CreateDate = seedDate, CreatedBy = sysUser },
             new Item { ProdGroup = "PAPER", PType = "C2S", ItemCode = "C2S0080R", ItemDesc = "C2S Paper 80 GSM", UM = "RL", GSM = 80, CreateDate = seedDate, CreatedBy = sysUser },
             new Item { ProdGroup = "PAPER", PType = "BP", ItemCode = "BP0065R", ItemDesc = "WOODFREE BP 65 GSM", UM = "RL", GSM = 65, CreateDate = seedDate, CreatedBy = sysUser }
-            // Add remaining Items here...
         );
 
         // 4. Seed PaperBoardPricing
@@ -72,9 +65,9 @@ public class CostEstimateContext : DbContext
             new PaperBoardPricing { PType = "CC", Vendor = "IGHAPCL", ItemCode = "CC250GS", Group = "IMPORTED", Currcode = "USD", Price_MT = 540m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser },
             new PaperBoardPricing { PType = "CC", Vendor = "IGHAPCL", ItemCode = "CC300GS", Group = "IMPORTED", Currcode = "USD", Price_MT = 515m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser },
             new PaperBoardPricing { PType = "CC", Vendor = "IGHAPCL", ItemCode = "CC350GS", Group = "IMPORTED", Currcode = "USD", Price_MT = 500m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser },
-            
-            // Notice the "UNASSIGNED" vendor used here to satisfy the composite Primary Key constraint
-            new PaperBoardPricing { PType = "FC", Vendor = "UNASSIGNED", ItemCode = "FC210GR", Group = "IMPORTED", Currcode = "USD", Price_MT = 650m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser },
+
+            // CHANGED: Matched the shortened Vendor key "UNASGND" here as well
+            new PaperBoardPricing { PType = "FC", Vendor = "UNASGND", ItemCode = "FC210GR", Group = "IMPORTED", Currcode = "USD", Price_MT = 650m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser },
             new PaperBoardPricing { PType = "CB", Vendor = "IGSEPCL", ItemCode = "CB230G", Group = "IMPORTED", Currcode = "USD", Price_MT = 630m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser },
             new PaperBoardPricing { PType = "C1S", Vendor = "IGOFSNL", ItemCode = "C1S085G", Group = "IMPORTED", Currcode = "USD", Price_MT = 780m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser }
         );
