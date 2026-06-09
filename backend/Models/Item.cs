@@ -7,18 +7,18 @@ namespace backend.Models
     [Table("Items")]
     public class Item
     {
-        [Key] // Placed here based on your schema marking (ü)
         [Column(TypeName = "nvarchar(20)")]
         [StringLength(20)]
-        public string ProdGroup { get; set; } = null!;
+        public string? ProdGroup { get; set; }
 
         [Column("PType", TypeName = "nvarchar(7)")]
         [StringLength(7)]
         public string? PType { get; set; }
 
+        [Key]
         [Column(TypeName = "nvarchar(30)")]
         [StringLength(30)]
-        public string? ItemCode { get; set; }
+        public string ItemCode { get; set; } = null!;
 
         [Column(TypeName = "nvarchar(50)")]
         [StringLength(50)]

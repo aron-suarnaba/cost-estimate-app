@@ -11,7 +11,7 @@ using backend.Data;
 
 namespace backend.Migrations
 {
-    [DbContext(typeof(CostEstimateContext))]
+    [DbContext(typeof(CostEstimateDbContext))]
     [Migration("20260529095737_InitialCreate")]
     partial class InitialCreate
     {
