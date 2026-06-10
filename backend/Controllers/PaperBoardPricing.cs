@@ -3,9 +3,11 @@ using System.Threading.Tasks;
 using backend.DTOs;
 using backend.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class PaperBoardPricingController : ControllerBase

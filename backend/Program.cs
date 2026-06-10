@@ -1,28 +1,57 @@
+using System.Text;
 using backend.Data;
 using backend.Interfaces;
 using backend.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ============================================================================
-// 1. DATA STORAGE & DATABASE CONFIGURATION
+// 1. JWT AUTHENTICATION CONFIGURATION
 // ============================================================================
 
-// Extract the connection string from appsettings.json.
-// Throws a fail-fast exception if the connection string is completely missing.
+
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKeyString = jwtSettings["Secret"] ?? "SuperSecretBackupKeyThatIsAtLeast32BytesLong123!";
+var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
+
+var issuer = jwtSettings["Issuer"] ?? "http://localhost:7282";
+var audience = jwtSettings["Audience"] ?? "http://localhost:5173";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+// ============================================================================
+// 2. DATA STORAGE & DATABASE CONFIGURATION
+// ============================================================================
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// Register the Entity Framework Core Database Context to use Microsoft SQL Server.
 builder.Services.AddDbContext<CostEstimateDbContext>(options => 
     options.UseSqlServer(connectionString));
 
 // ============================================================================
-// 2. SECURITY & CROSS-ORIGIN RESOURCE SHARING (CORS)
+// 3. SECURITY & CROSS-ORIGIN RESOURCE SHARING (CORS)
 // ============================================================================
-
-// Defined key name for the specific Cross-Origin browser security policy
 var costEstimateCorsPolicy = "_CostEstimateCorsPolicy";
 
 builder.Services.AddCors(options =>
@@ -30,63 +59,49 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: costEstimateCorsPolicy,
         policy =>
         {
-            // Restrict access explicitly to the local Vite/React development port
             policy.WithOrigins("http://localhost:5173")
-                  .AllowAnyHeader()  // Allow any HTTP headers (e.g., Content-Type, Authorization)
-                  .AllowAnyMethod()  // Allow all HTTP verbs (GET, POST, PUT, DELETE, etc.)
-                  .AllowCredentials(); // Permit cross-origin requests to pass credentials/cookies
+                  .AllowAnyHeader()  
+                  .AllowAnyMethod()  
+                  .AllowCredentials(); 
         });
 });
 
 // ============================================================================
-// 3. DEPENDENCY INJECTION (APPLICATION SERVICES)
+// 4. DEPENDENCY INJECTION (APPLICATION SERVICES)
 // ============================================================================
-
-// Services are registered with a 'Scoped' lifetime. 
-// Meaning: A single instance is created per incoming HTTP request and disposed of at the end of that request.
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IPtypeService, PtypeService>();
 builder.Services.AddScoped<IVendorsService, VendorsService>();
 builder.Services.AddScoped<IPaperBoardPricingService, PaperBoardPricingService>();
 
 // ============================================================================
-// 4. CORE CONTROLLER & API FRAMEWORKS
+// 5. CORE CONTROLLER & API FRAMEWORKS
 // ============================================================================
-
-// Register Controller support for the MVC routing system
 builder.Services.AddControllers();
-
-// Register the modern .NET OpenAPI engine for automated API endpoint documentation
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
-// Build the application configuration into a concrete executable WebApplication instance
 var app = builder.Build();
 
 // ============================================================================
-// 5. HTTP REQUEST PIPELINE (MIDDLEWARE REQUISITE ORDER)
+// 6. HTTP REQUEST PIPELINE (MIDDLEWARE REQUISITE ORDER)
 // ============================================================================
-
-// Expose OpenAPI documentation metadata endpoints (*.json) ONLY during local development cycles
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-// Intercept unencrypted HTTP requests and automatically redirect clients to secure HTTPS (SSL/TLS)
 app.UseHttpsRedirection();
 
-// Enforce the CORS policy. Must be invoked BEFORE Routing, Authentication, and Endpoint mapping.
+// 1. Apply CORS boundary limits first
 app.UseCors(costEstimateCorsPolicy);
 
-// Evaluate security claims and access token rules before running target Controller logic
+// 2. CRITICAL FIX: Tell ASP.NET Core to decode and validate incoming JWT strings!
+app.UseAuthentication(); 
+
+// 3. Evaluate if the verified user identities match your [Authorize] requirements
 app.UseAuthorization();
 
-// Map route definitions found in Controller classes (e.g., [Route("api/[controller]")])
 app.MapControllers();
 
-// ============================================================================
-// 6. APPLICATION START
-// ============================================================================
-
-// Run the web application, block the main execution thread, and start listening to incoming network requests.
 app.Run();

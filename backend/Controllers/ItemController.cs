@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using backend.DTOs;
 using backend.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ItemController : ControllerBase
