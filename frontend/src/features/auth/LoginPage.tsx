@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
@@ -8,10 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { loginSchema, LoginFormValues } from "./login.schema";
+import api from "@/lib/api";
 
-export default function App() {
+interface LoginPageProps {
+  onLoginSuccess: () => void;
+}
+
+export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const {
     register,
@@ -23,11 +29,28 @@ export default function App() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
-    // Simulate API Auth Request payload passing to your ASP.NET Core backend
-    console.log("Authenticating user payload:", data);
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setIsSubmitting(false);
-    alert("Authentication request sent to C# backend controller successfully.");
+    setLoginError(null);
+
+    try {
+      const response = await api.post("/auth/login", {
+        username: data.username,
+        password: data.password,
+      });
+
+      const { token } = response.data;
+
+      if (token) {
+        localStorage.setItem("token", token);
+        onLoginSuccess(); // Notify App.tsx to flip the authenticated switch
+      } else {
+        setLoginError("Invalid server response token structure.");
+      }
+    } catch (err: any) {
+      console.error("Authentication Failure:", err);
+      setLoginError(err.response?.data?.message || "Invalid system credentials or network rejection.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -35,7 +58,6 @@ export default function App() {
       
       {/* LEFT COLUMN: ENTERPRISE SYSTEM INFO */}
       <div className="hidden lg:flex lg:col-span-7 p-12 flex-col justify-between bg-slate-900 text-slate-100 border-r border-slate-800 relative overflow-hidden">
-        {/* Subtle grid accent overlay to maintain a plain, utilitarian vibe */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" />
 
         <div className="relative z-10 flex items-center gap-3">
@@ -52,7 +74,7 @@ export default function App() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="text-4xl font-bold tracking-tight text-white font-sans"
+            className="text-4xl font-bold tracking-tight text-white"
           >
             Precision Cost Estimation Engine
           </motion.h1>
@@ -65,7 +87,6 @@ export default function App() {
             Calculate margins, evaluate vendor matrix variants, and manage structural paperboard inventory models instantly via an enterprise ledger infrastructure.
           </motion.p>
 
-          {/* System status dashboard highlights */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -102,14 +123,6 @@ export default function App() {
           transition={{ duration: 0.3 }}
           className="w-full max-w-md"
         >
-          {/* Mobile Heading view wrapper */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <Calculator className="h-5 w-5 text-slate-700" />
-            <span className="font-mono font-bold text-xs tracking-wider text-slate-600">
-              COST.ESTIMATE // APPS
-            </span>
-          </div>
-
           <Card className="border-slate-200 shadow-md bg-white rounded-xl">
             <CardHeader className="space-y-1.5 pb-6">
               <CardTitle className="text-2xl font-bold tracking-tight text-slate-900">
@@ -122,7 +135,12 @@ export default function App() {
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 
-                {/* Username Input Field */}
+                {loginError && (
+                  <div className="p-3 bg-rose-50 border border-rose-100 rounded-lg text-xs font-medium text-rose-600">
+                    {loginError}
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wider text-slate-600 font-mono">
                     System Username
@@ -130,9 +148,9 @@ export default function App() {
                   <Input
                     type="text"
                     {...register("username")}
-                    placeholder="e.g., p.torres"
+                    placeholder="e.g., admin"
                     disabled={isSubmitting}
-                    className="border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-400 focus-visible:border-slate-400 bg-slate-50/50"
+                    className="border-slate-200 bg-slate-50/50"
                   />
                   {errors.username && (
                     <p className="text-xs font-medium text-rose-600 mt-1">
@@ -141,32 +159,24 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Password Input Field */}
                 <div className="space-y-1.5">
-                  <div className="flex justify-between items-center">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-600 font-mono">
-                      Security Password
-                    </label>
-                  </div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-600 font-mono">
+                    Security Password
+                  </label>
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
                       {...register("password")}
                       placeholder="••••••••"
                       disabled={isSubmitting}
-                      className="border-slate-200 pr-10 focus-visible:ring-1 focus-visible:ring-slate-400 focus-visible:border-slate-400 bg-slate-50/50"
+                      className="border-slate-200 pr-10 bg-slate-50/50"
                     />
                     <button
                       type="button"
-                      tabIndex={-1}
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" aria-hidden="true" />
-                      ) : (
-                        <Eye className="h-4 w-4" aria-hidden="true" />
-                      )}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                   {errors.password && (
@@ -176,11 +186,10 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Action Submission Trigger */}
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full mt-2 bg-slate-900 hover:bg-slate-800 text-white font-medium shadow-sm transition-all flex items-center justify-center gap-2 h-10"
+                  className="w-full mt-2 bg-slate-900 text-white font-medium flex items-center justify-center gap-2 h-10"
                 >
                   {isSubmitting ? (
                     <>
@@ -197,12 +206,8 @@ export default function App() {
               </form>
             </CardContent>
           </Card>
-
-          <p className="text-center text-xs text-slate-400 mt-6 px-4 leading-relaxed">
-            Authorized operation context only. All transactions, calculation cycles, and active parameter mutations are monitored and logged natively under network auditing regulations.
-          </p>
         </motion.div>
       </div>
     </div>
   );
-}
+};

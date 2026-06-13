@@ -13,7 +13,7 @@ namespace backend.DTOs
         public decimal? Price_Sheet { get; init; }
         public decimal? Price_Pound { get; init; }
         public decimal? Price_Bale { get; init; }
-        public decimal? EffectiveDate { get; init; }
+        public DateTime? EffectiveDate { get; init; }
     }
 
     public record PaperBoardPricingResponseDto
@@ -27,7 +27,7 @@ namespace backend.DTOs
         public decimal? Price_Sheet { get; init; }
         public decimal? Price_Pound { get; init; }
         public decimal? Price_Bale { get; init; }
-        public decimal? EffectiveDate { get; init; }
+        public DateTime? EffectiveDate { get; init; }
         public DateTime? CreateDate { get; init; }
         public string? CreatedBy { get; init; }
     }

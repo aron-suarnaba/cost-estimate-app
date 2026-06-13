@@ -32,10 +32,25 @@ namespace backend.Services
 
         public async Task<VendorsResponseDto> CreateAsync(VendorsCreateUpdateDto dto)
         {
-            var v = new Vendors { Vendnum = dto.Vendnum, Group = dto.Group, Name = dto.Name, Currcode = dto.Currcode, CreateDate = DateTime.Now, CreatedBy = "SYSTEM" };
-            _context.Vendors.Add(v);
+            var vendors = new Vendors { 
+                Vendnum = dto.Vendnum, 
+                Group = dto.Group, 
+                Name = dto.Name, 
+                Currcode = dto.Currcode, 
+                CreateDate = DateTime.Now, 
+                CreatedBy = "SYSTEM" 
+            };
+
+            _context.Vendors.Add(vendors);
             await _context.SaveChangesAsync();
-            return new VendorsResponseDto { Vendnum = v.Vendnum, Group = v.Group, Name = v.Name, Currcode = v.Currcode, CreateDate = v.CreateDate, CreatedBy = v.CreatedBy };
+            return new VendorsResponseDto { 
+                Vendnum = vendors.Vendnum, 
+                Group = vendors.Group, 
+                Name = vendors.Name, 
+                Currcode = vendors.Currcode, 
+                CreateDate = vendors.CreateDate, 
+                CreatedBy = vendors.CreatedBy 
+            };
         }
 
         public async Task<VendorsResponseDto?> UpdateAsync(string vendnum, VendorsCreateUpdateDto dto)

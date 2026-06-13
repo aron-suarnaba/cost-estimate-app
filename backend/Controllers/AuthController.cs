@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using backend.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -9,6 +10,7 @@ namespace backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [AllowAnonymous]
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _configuration;
@@ -32,7 +34,7 @@ namespace backend.Controllers
 
                 var claims = new[]
                 {
-                    new Claim(ClaimTypes.Name, request.Username),
+                    new Claim(ClaimTypes.Name, username!),
                     new Claim(ClaimTypes.Role, "Administrator"),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
@@ -50,7 +52,7 @@ namespace backend.Controllers
                 return Ok(new LoginResponseDto
                 {
                     Token = tokenString,
-                    Username = request.Username
+                    Username = username!
                 });
             }
 

@@ -61,12 +61,12 @@ namespace backend.Data
 
             // 4. Seed PaperBoardPricing
             modelBuilder.Entity<PaperBoardPricing>().HasData(
-                new PaperBoardPricing { PType = "CC", Vendor = "IGHAPCL", ItemCode = "CC250GS", Group = "IMPORTED", Currcode = "USD", Price_MT = 540m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser },
-                new PaperBoardPricing { PType = "CC", Vendor = "IGHAPCL", ItemCode = "CC300GS", Group = "IMPORTED", Currcode = "USD", Price_MT = 515m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser },
-                new PaperBoardPricing { PType = "CC", Vendor = "IGHAPCL", ItemCode = "CC350GS", Group = "IMPORTED", Currcode = "USD", Price_MT = 500m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser },
-                new PaperBoardPricing { PType = "FC", Vendor = "UNASGND", ItemCode = "FC210GR", Group = "IMPORTED", Currcode = "USD", Price_MT = 650m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser },
-                new PaperBoardPricing { PType = "CB", Vendor = "IGSEPCL", ItemCode = "CB230G", Group = "IMPORTED", Currcode = "USD", Price_MT = 630m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser },
-                new PaperBoardPricing { PType = "C1S", Vendor = "IGOFSNL", ItemCode = "C1S085G", Group = "IMPORTED", Currcode = "USD", Price_MT = 780m, EffectiveDate = 20250101.00m, CreateDate = seedDate, CreatedBy = sysUser }
+                new PaperBoardPricing { PType = "CC", Vendor = "IGHAPCL", ItemCode = "CC250GS", Group = "IMPORTED", Currcode = "USD", Price_MT = 540m, EffectiveDate = new DateTime(2025, 1, 1), CreateDate = seedDate, CreatedBy = sysUser },
+                new PaperBoardPricing { PType = "CC", Vendor = "IGHAPCL", ItemCode = "CC300GS", Group = "IMPORTED", Currcode = "USD", Price_MT = 515m, EffectiveDate = new DateTime(2025, 1, 1), CreateDate = seedDate, CreatedBy = sysUser },
+                new PaperBoardPricing { PType = "CC", Vendor = "IGHAPCL", ItemCode = "CC350GS", Group = "IMPORTED", Currcode = "USD", Price_MT = 500m, EffectiveDate = new DateTime(2025, 1, 1), CreateDate = seedDate, CreatedBy = sysUser },
+                new PaperBoardPricing { PType = "FC", Vendor = "UNASGND", ItemCode = "FC210GR", Group = "IMPORTED", Currcode = "USD", Price_MT = 650m, EffectiveDate = new DateTime(2025, 1, 1), CreateDate = seedDate, CreatedBy = sysUser },
+                new PaperBoardPricing { PType = "CB", Vendor = "IGSEPCL", ItemCode = "CB230G", Group = "IMPORTED", Currcode = "USD", Price_MT = 630m, EffectiveDate = new DateTime(2025, 1, 1), CreateDate = seedDate, CreatedBy = sysUser },
+                new PaperBoardPricing { PType = "C1S", Vendor = "IGOFSNL", ItemCode = "C1S085G", Group = "IMPORTED", Currcode = "USD", Price_MT = 780m, EffectiveDate = new DateTime(2025, 1, 1), CreateDate = seedDate, CreatedBy = sysUser }
             );
         }
     }
