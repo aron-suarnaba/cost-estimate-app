@@ -1,30 +1,63 @@
+// {
+//   "compilerOptions": {
+//     "composite": true,
+//     "tsBuildInfoFile": "./node_modules/.dotcache/tsconfig.app.tsbuildinfo",
+//     "target": "ES2022",
+//     "useDefineForClassFields": true,
+//     "lib": ["DOM", "DOM.Iterable", "ES2022"],
+//     "module": "ESNext",
+//     "skipLibCheck": true,
+    
+
+//     /* Bundler mode */
+//     "moduleResolution": "bundler",
+//     "allowImportingTsExtensions": true,
+//     "resolveJsonModule": true,
+//     "isolatedModules": true,
+//     "moduleDetection": "force",
+//     "noEmit": true,
+//     "jsx": "react-jsx",
+
+//     /* Linting */
+//     "strict": true,
+//     "noUnusedLocals": true,
+//     "noUnusedParameters": true,
+//     "noFallthroughCasesInSwitch": true,
+
+//     /* 🟢 UPDATE THIS BLOCK (Removed baseUrl, updated paths string) */
+//     "paths": {
+//       "@/*": ["./src/*"]
+//     }
+//   },
+//   "include": ["src", "src/custom.d.ts"]
+// }
+
 {
   "compilerOptions": {
     "composite": true,
-    "tsBuildInfoFile": "./node_modules/.dotcache/tsconfig.app.tsbuildinfo",
+    "tsBuildInfoFile": "./node_modules/.dotts/tsconfig.app.tsbuildinfo",
     "target": "ES2022",
     "useDefineForClassFields": true,
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "module": "ESNext",
     "skipLibCheck": true,
-    
 
-    /* Bundler mode */
+    /* Bundler mode configuration rules */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting */
+    /* Linting / Safety rules checking */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* 🟢 UPDATE THIS BLOCK (Removed baseUrl, updated paths string) */
+    /* 🟢 ADD PATH ALIAS MAPPING HERE (No baseUrl needed) */
     "paths": {
       "@/*": ["./src/*"]
     }

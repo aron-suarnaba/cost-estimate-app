@@ -7,20 +7,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using backend.Middleware;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ============================================================================
 // 1. JWT AUTHENTICATION CONFIGURATION
 // ============================================================================
-
-
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKeyString = jwtSettings["Secret"] ?? "SuperSecretBackupKeyThatIsAtLeast32BytesLong123!";
 var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
-
-var issuer = jwtSettings["Issuer"] ?? "http://localhost:7282";
-var audience = jwtSettings["Audience"] ?? "http://localhost:5173";
 
 builder.Services.AddAuthentication(options =>
 {
@@ -35,8 +31,8 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
+        ValidIssuer = jwtSettings["Issuer"] ?? "http://localhost:7282",
+        ValidAudience = jwtSettings["Audience"] ?? "http://localhost:5173",
         IssuerSigningKey = new SymmetricSecurityKey(secretKey),
         ClockSkew = TimeSpan.Zero
     };
@@ -77,16 +73,28 @@ builder.Services.AddScoped<IVendorsService, VendorsService>();
 builder.Services.AddScoped<IPaperBoardPricingService, PaperBoardPricingService>();
 
 // ============================================================================
-// 5. CORE CONTROLLER & API FRAMEWORKS
+// 5. CORE CONTROLLER & API FRAMEWORKS (.NET 10 STABLE)
 // ============================================================================
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(new AuthorizeFilter());
 });
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info.Title = "Cost Estimation Engine API";
+        document.Info.Version = "v1";
+        document.Info.Description = "Enterprise ledger infrastructure for material variants.";
+        return Task.CompletedTask;
+    });
+});
 
 var app = builder.Build();
 
@@ -95,20 +103,21 @@ var app = builder.Build();
 // ============================================================================
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi(); // Exposes /openapi/v1.json
+    
+    // 🟢 Fully resolved UI pipeline reference wrapper
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "Cost Engine API v1");
+        options.RoutePrefix = "swagger"; // Lands UI at https://localhost:7282/swagger
+    });
 }
 
 app.UseHttpsRedirection();
-
 app.UseExceptionHandler();
-
-// 1. Apply CORS boundary limits first
 app.UseCors(costEstimateCorsPolicy);
 
-// 2. CRITICAL FIX: Tell ASP.NET Core to decode and validate incoming JWT strings!
 app.UseAuthentication(); 
-
-// 3. Evaluate if the verified user identities match your [Authorize] requirements
 app.UseAuthorization();
 
 app.MapControllers();

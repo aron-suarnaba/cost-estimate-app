@@ -1,9 +1,12 @@
-// App.tsx
+// src/App.tsx
 import { useState, useEffect } from "react";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { ItemsPage } from "@/features/items/ItemsPage";
+import { VendorsPage } from "@/features/vendors/VendorsPage";
+import { PtypesPage } from "@/features/ptype/PtypesPage";
+import { PricingPage } from "@/features/pricing/PricingPage";
 import { DashboardHome } from "@/features/dashboard/DashboardHome";
-import { WorkspaceLayout } from "@/components/layout/WorkspaceLayout";
+import { MainLayout } from "./components/layout/main-layout";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function App() {
@@ -31,21 +34,36 @@ export default function App() {
     );
   }
 
-  // GATEKEEPER CHECK: Force login flow
   if (!isAuthenticated) {
     return <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
-  // WORKSPACE VIEW ROUTER: Wrapped nicely inside Header and Footer layers
+  const renderView = () => {
+    switch (currentView) {
+      case "dashboard":
+        return <DashboardHome />;
+      case "items":
+        return <ItemsPage />;
+      case "vendors":
+        return <VendorsPage />;
+      case "ptype":
+        return <PtypesPage />;
+      case "pricing":
+        return <PricingPage />;
+      default:
+        return <DashboardHome />;
+    }
+  };
+
   return (
     <SidebarProvider>
-      <WorkspaceLayout
+      <MainLayout
         currentView={currentView}
-        setCurrentView={setCurrentView}
-        handleLogout={handleLogout}
+        onViewChange={setCurrentView}
+        handleLogout={handleLogout} 
       >
-        {currentView === "dashboard" ? <DashboardHome /> : <ItemsPage />}
-      </WorkspaceLayout>
+        {renderView()}
+      </MainLayout>
     </SidebarProvider>
   );
 }

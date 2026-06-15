@@ -76,7 +76,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             transition={{ duration: 0.4 }}
             className="text-4xl font-bold tracking-tight text-white"
           >
-            Precision Cost Estimation Engine
+            Cost Estimate Web Application
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 15 }}

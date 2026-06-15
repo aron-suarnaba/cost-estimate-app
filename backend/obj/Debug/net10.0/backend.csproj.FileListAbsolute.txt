@@ -159,3 +159,4 @@ C:\xampp\htdocs\cost-estimate-app\backend\obj\Debug\net10.0\backend.pdb
 C:\xampp\htdocs\cost-estimate-app\backend\obj\Debug\net10.0\backend.genruntimeconfig.cache
 C:\xampp\htdocs\cost-estimate-app\backend\obj\Debug\net10.0\ref\backend.dll
 C:\xampp\htdocs\cost-estimate-app\backend\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\xampp\htdocs\cost-estimate-app\backend\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
