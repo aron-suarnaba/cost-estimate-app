@@ -38,7 +38,7 @@ export const PricingPage: React.FC = () => {
   const [pricing, setPricing] = useState<PaperBoardPricingResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+//   const [error, setError] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [selectedEntry, setSelectedEntry] = useState<PaperBoardPricingResponseDto | null>(null);
@@ -67,9 +67,9 @@ export const PricingPage: React.FC = () => {
     try {
       const response = await api.get<PaperBoardPricingResponseDto[]>("/PaperBoardPricing");
       setPricing(response.data);
-      setError(null);
+    //   setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Unable to load pricing entries.");
+    //   setError(err.response?.data?.message || err.message || "Unable to load pricing entries.");
     } finally {
       setIsLoading(false);
     }

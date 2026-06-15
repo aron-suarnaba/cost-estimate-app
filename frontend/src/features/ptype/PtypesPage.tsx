@@ -35,7 +35,7 @@ export const PtypesPage: React.FC = () => {
   const [ptypes, setPtypes] = useState<PtypeResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+//   const [error, setError] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [selectedPtype, setSelectedPtype] = useState<PtypeResponseDto | null>(null);
@@ -57,9 +57,9 @@ export const PtypesPage: React.FC = () => {
     try {
       const response = await api.get<PtypeResponseDto[]>("/Ptype");
       setPtypes(response.data);
-      setError(null);
+    //   setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Unable to load product types.");
+    //   setError(err.response?.data?.message || err.message || "Unable to load product types.");
     } finally {
       setIsLoading(false);
     }

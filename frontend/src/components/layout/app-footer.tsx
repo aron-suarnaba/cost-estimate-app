@@ -1,5 +1,3 @@
-import React from "react";
-
 export function AppFooter() {
   return (
     <footer className="h-10 border-t border-slate-100 bg-white flex items-center justify-between px-8 text-xs text-slate-400 shrink-0">
