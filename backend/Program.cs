@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using backend.Middleware;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.OpenApi;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,14 +51,13 @@ builder.Services.AddDbContext<CostEstimateDbContext>(options =>
 // ============================================================================
 // 3. SECURITY & CROSS-ORIGIN RESOURCE SHARING (CORS)
 // ============================================================================
-var costEstimateCorsPolicy = "_CostEstimateCorsPolicy";
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: costEstimateCorsPolicy,
+    options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")
+            policy.WithOrigins("http://costestimate.com:8081", "http://costestimate.com:8080")
                   .AllowAnyHeader()  
                   .AllowAnyMethod()  
                   .AllowCredentials(); 
@@ -96,6 +96,7 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
+
 var app = builder.Build();
 
 // ============================================================================
@@ -113,9 +114,22 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+
+// Apply forwarded headers first so the app can correctly see original scheme/host
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+// Routing required so CORS middleware can run in the right stage
+app.UseRouting();
+
+// Place CORS before HTTPS redirection and before authentication so preflight
+// (OPTIONS) requests are handled and return the Access-Control-Allow-* headers
+app.UseCors("AllowFrontend");
+
+// app.UseHttpsRedirection();
 app.UseExceptionHandler();
-app.UseCors(costEstimateCorsPolicy);
 
 app.UseAuthentication(); 
 app.UseAuthorization();
