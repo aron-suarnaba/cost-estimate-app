@@ -57,10 +57,11 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins("http://costestimate.com:8081", "http://costestimate.com:8080")
+            policy.WithOrigins("http://localhost:5173")
+                //   .WithOrigins("http://costestimate.com:8081", "http://costestimate.com:8080", "http://localhost:5173")
                   .AllowAnyHeader()  
-                  .AllowAnyMethod()  
-                  .AllowCredentials(); 
+                  .AllowAnyMethod();  
+                //   .AllowCredentials(); 
         });
 });
 
@@ -121,12 +122,13 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 
-// Routing required so CORS middleware can run in the right stage
-app.UseRouting();
+
 
 // Place CORS before HTTPS redirection and before authentication so preflight
 // (OPTIONS) requests are handled and return the Access-Control-Allow-* headers
 app.UseCors("AllowFrontend");
+
+app.UseRouting();
 
 // app.UseHttpsRedirection();
 app.UseExceptionHandler();

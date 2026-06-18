@@ -323,3 +323,4 @@ C:\cost-estimate-app\backend\obj\Debug\net10.0\refint\backend.dll
 C:\cost-estimate-app\backend\obj\Debug\net10.0\backend.pdb
 C:\cost-estimate-app\backend\obj\Debug\net10.0\backend.genruntimeconfig.cache
 C:\cost-estimate-app\backend\obj\Debug\net10.0\ref\backend.dll
+C:\xampp\htdocs\cost-estimate-app\backend\bin\Debug\net10.0\web.config
