@@ -1,13 +1,13 @@
 export interface PtypeCreateUpdateDto {
-  PType: string;
-  PtypeDesc?: string;
-  DescLabel?: string;
+  pType: string;
+  ptypeDesc?: string;
+  descLabel?: string;
 }
 
 export interface PtypeResponseDto {
-  PType: string;
-  PtypeDesc?: string;
-  DescLabel?: string;
-  CreateDate?: string;
-  CreatedBy?: string;
+  pType: string;
+  ptypeDesc?: string;
+  descLabel?: string;
+  createDate?: string;
+  createdBy?: string;
 }

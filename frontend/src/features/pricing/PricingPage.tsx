@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   ColumnDef,
@@ -10,13 +10,14 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { Edit3, Plus, Search, Trash2 } from "lucide-react";
+import { Edit3, Plus, Search, Trash2, AlertCircle } from "lucide-react";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -29,16 +30,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { usePricing } from "@/features/pricing/hooks/usePricing"; // Import your custom hook
 import {
   PaperBoardPricingCreateUpdateDto,
   PaperBoardPricingResponseDto,
 } from "./types";
 
 export const PricingPage: React.FC = () => {
-  const [pricing, setPricing] = useState<PaperBoardPricingResponseDto[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  // Use custom hook state management
+  const { pricing, error, isLoading, fetchPricing } = usePricing();
+  
   const [isSaving, setIsSaving] = useState(false);
-//   const [error, setError] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [selectedEntry, setSelectedEntry] = useState<PaperBoardPricingResponseDto | null>(null);
@@ -47,52 +49,35 @@ export const PricingPage: React.FC = () => {
 
   const form = useForm<PaperBoardPricingCreateUpdateDto>({
     defaultValues: {
-      Group: "",
-      PType: "",
-      Vendor: "",
-      ItemCode: "",
-      Currcode: "",
-      Price_MT: undefined,
-      Price_Sheet: undefined,
-      Price_Pound: undefined,
-      Price_Bale: undefined,
-      EffectiveDate: "",
+      group: "",
+      pType: "",
+      vendor: "",
+      itemCode: "",
+      currcode: "",
+      price_MT: undefined,
+      price_Sheet: undefined,
+      price_Pound: undefined,
+      price_Bale: undefined,
+      effectiveDate: "",
     },
   });
 
   const { register, handleSubmit, reset } = form;
 
-  const fetchPricing = async () => {
-    setIsLoading(true);
-    try {
-      const response = await api.get<PaperBoardPricingResponseDto[]>("/PaperBoardPricing");
-      setPricing(response.data);
-    //   setError(null);
-    } catch (err: any) {
-    //   setError(err.response?.data?.message || err.message || "Unable to load pricing entries.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPricing();
-  }, []);
-
   const openCreateSheet = () => {
     setFormMode("create");
     setSelectedEntry(null);
     reset({
-      Group: "",
-      PType: "",
-      Vendor: "",
-      ItemCode: "",
-      Currcode: "",
-      Price_MT: undefined,
-      Price_Sheet: undefined,
-      Price_Pound: undefined,
-      Price_Bale: undefined,
-      EffectiveDate: "",
+      group: "",
+      pType: "",
+      vendor: "",
+      itemCode: "",
+      currcode: "",
+      price_MT: undefined,
+      price_Sheet: undefined,
+      price_Pound: undefined,
+      price_Bale: undefined,
+      effectiveDate: "",
     });
     setSheetOpen(true);
   };
@@ -101,16 +86,16 @@ export const PricingPage: React.FC = () => {
     setFormMode("edit");
     setSelectedEntry(entry);
     reset({
-      Group: entry.Group || "",
-      PType: entry.PType,
-      Vendor: entry.Vendor,
-      ItemCode: entry.ItemCode,
-      Currcode: entry.Currcode || "",
-      Price_MT: entry.Price_MT,
-      Price_Sheet: entry.Price_Sheet,
-      Price_Pound: entry.Price_Pound,
-      Price_Bale: entry.Price_Bale,
-      EffectiveDate: entry.EffectiveDate?.split("T")[0] ?? "",
+      group: entry.group || "",
+      pType: entry.pType,
+      vendor: entry.vendor,
+      itemCode: entry.itemCode,
+      currcode: entry.currcode || "",
+      price_MT: entry.price_MT,
+      price_Sheet: entry.price_Sheet,
+      price_Pound: entry.price_Pound,
+      price_Bale: entry.price_Bale,
+      effectiveDate: entry.effectiveDate?.split("T")[0] ?? "",
     });
     setSheetOpen(true);
   };
@@ -123,7 +108,7 @@ export const PricingPage: React.FC = () => {
         window.alert("Pricing entry created successfully.");
       } else if (selectedEntry) {
         await api.put<PaperBoardPricingResponseDto>(
-          `/PaperBoardPricing/${selectedEntry.ItemCode}/${selectedEntry.Vendor}/${selectedEntry.PType}`,
+          `/PaperBoardPricing/${selectedEntry.itemCode}/${selectedEntry.vendor}/${selectedEntry.pType}`,
           values,
         );
         window.alert("Pricing entry updated successfully.");
@@ -138,12 +123,12 @@ export const PricingPage: React.FC = () => {
   };
 
   const handleDelete = async (entry: PaperBoardPricingResponseDto) => {
-    const confirmed = window.confirm(`Delete pricing entry ${entry.ItemCode} / ${entry.Vendor} / ${entry.PType}?`);
+    const confirmed = window.confirm(`Delete pricing entry ${entry.itemCode} / ${entry.vendor} / ${entry.pType}?`);
     if (!confirmed) return;
 
     try {
-      await api.delete(`/PaperBoardPricing/${entry.ItemCode}/${entry.Vendor}/${entry.PType}`);
-      setPricing((current) => current.filter((item) => item.ItemCode !== entry.ItemCode || item.Vendor !== entry.Vendor || item.PType !== entry.PType));
+      await api.delete(`/PaperBoardPricing/${entry.itemCode}/${entry.vendor}/${entry.pType}`);
+      await fetchPricing(); // Reload cleanly via hook
       window.alert("Pricing entry deleted successfully.");
     } catch (err: any) {
       window.alert(err.response?.data?.message || err.message || "Failed to delete pricing entry.");
@@ -225,6 +210,12 @@ export const PricingPage: React.FC = () => {
             <p className="text-sm text-slate-500 mt-1">
               Manage pricing entries with search, sort, and edit dialogs.
             </p>
+            {error && (
+              <div className="mt-4 flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -298,45 +289,48 @@ export const PricingPage: React.FC = () => {
         <SheetContent side="right">
           <SheetHeader>
             <SheetTitle>{formMode === "create" ? "Create Pricing" : "Edit Pricing"}</SheetTitle>
+            <SheetDescription>
+              Provide configuration details below. Fields marked as required must be populated.
+            </SheetDescription>
           </SheetHeader>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Item Code</span>
-                <Input {...register("ItemCode", { required: true })} />
+                <Input {...register("itemCode", { required: true })} />
               </label>
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Vendor</span>
-                <Input {...register("Vendor", { required: true })} />
+                <Input {...register("vendor", { required: true })} />
               </label>
               <label className="space-y-2 text-sm text-slate-700">
                 <span>PType</span>
-                <Input {...register("PType", { required: true })} />
+                <Input {...register("pType", { required: true })} />
               </label>
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Currency</span>
-                <Input {...register("Currcode")} />
+                <Input {...register("currcode")} />
               </label>
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Price / MT</span>
-                <Input type="number" step="0.01" {...register("Price_MT", { valueAsNumber: true })} />
+                <Input type="number" step="0.01" {...register("price_MT", { valueAsNumber: true })} />
               </label>
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Price / Sheet</span>
-                <Input type="number" step="0.01" {...register("Price_Sheet", { valueAsNumber: true })} />
+                <Input type="number" step="0.01" {...register("price_Sheet", { valueAsNumber: true })} />
               </label>
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Price / Pound</span>
-                <Input type="number" step="0.01" {...register("Price_Pound", { valueAsNumber: true })} />
+                <Input type="number" step="0.01" {...register("price_Pound", { valueAsNumber: true })} />
               </label>
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Price / Bale</span>
-                <Input type="number" step="0.01" {...register("Price_Bale", { valueAsNumber: true })} />
+                <Input type="number" step="0.01" {...register("price_Bale", { valueAsNumber: true })} />
               </label>
               <label className="space-y-2 text-sm text-slate-700 sm:col-span-2">
                 <span>Effective Date</span>
-                <Input type="date" {...register("EffectiveDate")} />
+                <Input type="date" {...register("effectiveDate")} />
               </label>
             </div>
 

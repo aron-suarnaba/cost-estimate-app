@@ -49,12 +49,20 @@ export const VendorDialog = ({
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-700 uppercase">Vendor Code</label>
-              <Input {...register("Vendnum", { required: true })} disabled={formMode === "edit"} />
+              <Input {...register("Vendnum", { required: true })} readOnly={formMode === "edit"} className={formMode === "edit" ? "bg-slate-50 cursor-not-allowed text-slate-500" : ""} />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-700 uppercase">Vendor Name</label>
-              <Input {...register("Name", { required: true })} />
+              <Input 
+                {...register("Name", { required: true })} 
+                // 🟢 Force real-time capitalization in state and view layer
+                onChange={(e) => {
+                  e.target.value = e.target.value.toUpperCase();
+                  register("Name").onChange(e);
+                }}
+                className="uppercase" // Keeps visual alignment consistent
+              />
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -68,6 +76,24 @@ export const VendorDialog = ({
                     <SelectContent>
                       <SelectItem value="IMPORTED">Imported</SelectItem>
                       <SelectItem value="LOCAL">Local</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            {/* 🟢 Added Currency Dropdown Selection Block */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-700 uppercase">Currency</label>
+              <Controller
+                control={control}
+                name="Currcode"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger><SelectValue placeholder="Select Currency" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PHP">PHP (₱)</SelectItem>
+                      <SelectItem value="USD">USD ($)</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

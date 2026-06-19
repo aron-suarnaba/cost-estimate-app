@@ -29,13 +29,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PtypeCreateUpdateDto, PtypeResponseDto } from "./types/ptype.types";
+import { PtypeCreateUpdateDto, PtypeResponseDto } from "@/features/ptype/types/ptype.types";
 
 export const PtypesPage: React.FC = () => {
   const [ptypes, setPtypes] = useState<PtypeResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-//   const [error, setError] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [selectedPtype, setSelectedPtype] = useState<PtypeResponseDto | null>(null);
@@ -44,9 +43,9 @@ export const PtypesPage: React.FC = () => {
 
   const form = useForm<PtypeCreateUpdateDto>({
     defaultValues: {
-      PType: "",
-      PtypeDesc: "",
-      DescLabel: "",
+      pType: "",
+      ptypeDesc: "",
+      descLabel: "",
     },
   });
 
@@ -57,9 +56,8 @@ export const PtypesPage: React.FC = () => {
     try {
       const response = await api.get<PtypeResponseDto[]>("/Ptype");
       setPtypes(response.data);
-    //   setError(null);
     } catch (err: any) {
-    //   setError(err.response?.data?.message || err.message || "Unable to load product types.");
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +70,7 @@ export const PtypesPage: React.FC = () => {
   const openCreateSheet = () => {
     setFormMode("create");
     setSelectedPtype(null);
-    reset({ PType: "", PtypeDesc: "", DescLabel: "" });
+    reset({ pType: "", ptypeDesc: "", descLabel: "" });
     setSheetOpen(true);
   };
 
@@ -80,21 +78,28 @@ export const PtypesPage: React.FC = () => {
     setFormMode("edit");
     setSelectedPtype(ptype);
     reset({
-      PType: ptype.PType,
-      PtypeDesc: ptype.PtypeDesc || "",
-      DescLabel: ptype.DescLabel || "",
+      pType: ptype.pType,
+      ptypeDesc: ptype.ptypeDesc || "",
+      descLabel: ptype.descLabel || "",
     });
     setSheetOpen(true);
   };
 
   const onSubmit = async (values: PtypeCreateUpdateDto) => {
     setIsSaving(true);
+
+    // Auto capitalize the paper type code and trim formatting gaps
+    const payload = {
+      ...values,
+      pType: values.pType ? values.pType.toUpperCase().trim() : "",
+    };
+
     try {
       if (formMode === "create") {
-        await api.post<PtypeResponseDto>("/Ptype", values);
+        await api.post<PtypeResponseDto>("/Ptype", payload);
         window.alert("Product type created successfully.");
       } else if (selectedPtype) {
-        await api.put<PtypeResponseDto>(`/Ptype/${selectedPtype.PType}`, values);
+        await api.put<PtypeResponseDto>(`/Ptype/${selectedPtype.pType}`, payload);
         window.alert("Product type updated successfully.");
       }
       await fetchPtypes();
@@ -107,12 +112,12 @@ export const PtypesPage: React.FC = () => {
   };
 
   const handleDelete = async (ptype: PtypeResponseDto) => {
-    const confirmed = window.confirm(`Delete product type ${ptype.PType}?`);
+    const confirmed = window.confirm(`Delete product type ${ptype.pType}?`);
     if (!confirmed) return;
 
     try {
-      await api.delete(`/Ptype/${ptype.PType}`);
-      setPtypes((current) => current.filter((item) => item.PType !== ptype.PType));
+      await api.delete(`/Ptype/${ptype.pType}`);
+      setPtypes((current) => current.filter((item) => item.pType !== ptype.pType));
       window.alert("Product type deleted successfully.");
     } catch (err: any) {
       window.alert(err.response?.data?.message || err.message || "Failed to delete product type.");
@@ -277,15 +282,34 @@ export const PtypesPage: React.FC = () => {
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Type Code</span>
-                <Input {...register("PType", { required: true })} />
+                {/* Max length bound to 7 characters and styled as uppercase text */}
+<Input 
+  {...register("pType", { required: true, maxLength: 7 })} 
+  maxLength={7}
+  placeholder="e.g. cas"
+  readOnly={formMode === "edit"}
+  className={`uppercase placeholder:normal-case ${
+    formMode === "edit" ? "bg-slate-50 cursor-not-allowed text-slate-500" : ""
+  }`}
+/>
               </label>
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Description</span>
-                <Input {...register("PtypeDesc")} />
+                {/* Max length bound to 40 characters */}
+                <Input 
+                  {...register("ptypeDesc", { maxLength: 40 })} 
+                  maxLength={40}
+                  placeholder="e.g. Coated Adhesives Satin"
+                />
               </label>
               <label className="space-y-2 text-sm text-slate-700 sm:col-span-2">
                 <span>Label</span>
-                <Input {...register("DescLabel")} />
+                {/* Fixed syntax structure error here */}
+                <Input 
+                  {...register("descLabel", { maxLength: 40 })} 
+                  maxLength={40}
+                  placeholder="e.g. CA Satin"
+                />
               </label>
             </div>
 

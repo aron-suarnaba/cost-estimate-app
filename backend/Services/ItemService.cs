@@ -31,6 +31,7 @@ namespace backend.Services
                     GSM = p.GSM,
                     Caliper = p.Caliper,
                     PPR = p.PPR,
+                    Cbnum = p.Cbnum, // Added
                     Width = p.Width,
                     Length = p.Length
                 }).ToListAsync();
@@ -39,22 +40,23 @@ namespace backend.Services
         public async Task<ItemResponseDto?> GetItemsByIdAsync(string itemCode)
         {
             var item = await _context.Items.FindAsync(itemCode);
-            if(item == null) return null;
+            if (item == null) return null;
 
             return new ItemResponseDto
             {
-                    ProdGroup = item.ProdGroup,
-                    PType = item.PType,
-                    ItemCode = item.ItemCode,
-                    ItemDesc = item.ItemDesc,
-                    UM = item.UM,
-                    CreateDate = item.CreateDate,
-                    CreatedBy = item.CreatedBy,
-                    GSM = item.GSM,
-                    Caliper = item.Caliper,
-                    PPR = item.PPR,
-                    Width = item.Width,
-                    Length = item.Length
+                ProdGroup = item.ProdGroup,
+                PType = item.PType,
+                ItemCode = item.ItemCode,
+                ItemDesc = item.ItemDesc,
+                UM = item.UM,
+                CreateDate = item.CreateDate,
+                CreatedBy = item.CreatedBy,
+                GSM = item.GSM,
+                Caliper = item.Caliper,
+                PPR = item.PPR,
+                Cbnum = item.Cbnum, // Added
+                Width = item.Width,
+                Length = item.Length
             };
         }
 
@@ -62,16 +64,17 @@ namespace backend.Services
         {
             var item = new Item
             {
-                    ProdGroup = dto.ProdGroup,
-                    PType = dto.PType,
-                    ItemCode = dto.ItemCode,
-                    ItemDesc = dto.ItemDesc,
-                    UM = dto.UM,
-                    GSM = dto.GSM,
-                    Caliper = dto.Caliper,
-                    PPR = dto.PPR,
-                    Width = dto.Width,
-                    Length = dto.Length
+                ProdGroup = dto.ProdGroup,
+                PType = dto.PType,
+                ItemCode = dto.ItemCode,
+                ItemDesc = dto.ItemDesc,
+                UM = dto.UM,
+                GSM = dto.GSM,
+                Caliper = dto.Caliper,
+                PPR = dto.PPR,
+                Cbnum = dto.Cbnum, // Added
+                Width = dto.Width,
+                Length = dto.Length
             };
 
             _context.Items.Add(item);
@@ -79,25 +82,26 @@ namespace backend.Services
 
             return new ItemResponseDto
             {
-                    ProdGroup = item.ProdGroup,
-                    PType = item.PType,
-                    ItemCode = item.ItemCode,
-                    ItemDesc = item.ItemDesc,
-                    UM = item.UM,
-                    CreateDate = item.CreateDate,
-                    CreatedBy = item.CreatedBy,
-                    GSM = item.GSM,
-                    Caliper = item.Caliper,
-                    PPR = item.PPR,
-                    Width = item.Width,
-                    Length = item.Length
+                ProdGroup = item.ProdGroup,
+                PType = item.PType,
+                ItemCode = item.ItemCode,
+                ItemDesc = item.ItemDesc,
+                UM = item.UM,
+                CreateDate = item.CreateDate,
+                CreatedBy = item.CreatedBy,
+                GSM = item.GSM,
+                Caliper = item.Caliper,
+                PPR = item.PPR,
+                Cbnum = item.Cbnum, // Added
+                Width = item.Width,
+                Length = item.Length
             };
         }
 
         public async Task<ItemResponseDto?> UpdateItemsAsync(string itemCode, ItemCreateUpdateDto dto)
         {
             var item = await _context.Items.FindAsync(itemCode);
-            if(item == null) return null;
+            if (item == null) return null;
 
             item.ProdGroup = dto.ProdGroup;
             item.PType = dto.PType;
@@ -107,6 +111,7 @@ namespace backend.Services
             item.GSM = dto.GSM;
             item.Caliper = dto.Caliper;
             item.PPR = dto.PPR;
+            item.Cbnum = dto.Cbnum; // Added
             item.Width = dto.Width;
             item.Length = dto.Length;
 
@@ -124,6 +129,7 @@ namespace backend.Services
                 GSM = item.GSM,
                 Caliper = item.Caliper,
                 PPR = item.PPR,
+                Cbnum = item.Cbnum, // Added
                 Width = item.Width,
                 Length = item.Length
             };
@@ -132,12 +138,11 @@ namespace backend.Services
         public async Task<bool> DeleteItemsAsync(string itemCode)
         {
             var item = await _context.Items.FindAsync(itemCode);
-            if(item == null) return false;
+            if (item == null) return false;
 
             _context.Items.Remove(item);
             await _context.SaveChangesAsync();
             return true;
         }
-
     }
 }

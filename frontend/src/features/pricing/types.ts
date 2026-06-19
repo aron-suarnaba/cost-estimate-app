@@ -1,27 +1,27 @@
 export interface PaperBoardPricingCreateUpdateDto {
-  Group?: string;
-  PType: string;
-  Vendor: string;
-  ItemCode: string;
-  Currcode?: string;
-  Price_MT?: number;
-  Price_Sheet?: number;
-  Price_Pound?: number;
-  Price_Bale?: number;
-  EffectiveDate?: string;
+  group?: string;
+  pType: string;
+  vendor: string;
+  itemCode: string;
+  currcode?: string;
+  price_MT?: number;
+  price_Sheet?: number;
+  price_Pound?: number;
+  price_Bale?: number;
+  effectiveDate?: string;
 }
 
 export interface PaperBoardPricingResponseDto {
-  Group?: string;
-  PType: string;
-  Vendor: string;
-  ItemCode: string;
-  Currcode?: string;
-  Price_MT?: number;
-  Price_Sheet?: number;
-  Price_Pound?: number;
-  Price_Bale?: number;
-  EffectiveDate?: string;
-  CreateDate?: string;
-  CreatedBy?: string;
+  group?: string;
+  pType: string;
+  vendor: string;
+  itemCode: string;
+  currcode?: string;
+  price_MT?: number;
+  price_Sheet?: number;
+  price_Pound?: number;
+  price_Bale?: number;
+  effectiveDate?: string;
+  createDate?: string;
+  createdBy?: string;
 }

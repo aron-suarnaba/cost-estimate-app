@@ -21,7 +21,9 @@ namespace backend.Services
 
         public async Task<PtypeResponseDto?> GetByCodeAsync(string ptypeCode)
         {
-            var p = await _context.Ptype.FindAsync(ptypeCode);
+            var normalizedCode = ptypeCode?.ToUpper().Trim();
+            
+            var p = await _context.Ptype.FindAsync(normalizedCode);
             return p == null ? null : new PtypeResponseDto { PType = p.PType, PtypeDesc = p.PtypeDesc, DescLabel = p.DescLabel, CreateDate = p.CreateDate, CreatedBy = p.CreatedBy };
         }
 
@@ -35,7 +37,9 @@ namespace backend.Services
 
         public async Task<PtypeResponseDto?> UpdateAsync(string ptypeCode, PtypeCreateUpdateDto dto)
         {
-            var p = await _context.Ptype.FindAsync(ptypeCode);
+            var normalizedCode = ptypeCode?.ToUpper().Trim();
+
+            var p = await _context.Ptype.FindAsync(normalizedCode);
             if (p == null) return null;
             p.PtypeDesc = dto.PtypeDesc; p.DescLabel = dto.DescLabel;
             await _context.SaveChangesAsync();
@@ -44,7 +48,9 @@ namespace backend.Services
 
         public async Task<bool> DeleteAsync(string ptypeCode)
         {
-            var p = await _context.Ptype.FindAsync(ptypeCode);
+            var normalizedCode = ptypeCode?.ToUpper().Trim();
+
+            var p = await _context.Ptype.FindAsync(normalizedCode);
             if (p == null) return false;
             _context.Ptype.Remove(p);
             await _context.SaveChangesAsync();

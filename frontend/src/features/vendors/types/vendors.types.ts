@@ -4,12 +4,11 @@ export interface VendorsCreateUpdateDto {
   Name?: string;
   Currcode?: string;
 }
-
 export interface VendorsResponseDto {
-  Vendnum: string;
-  Group?: string;
-  Name?: string;
-  Currcode?: string;
-  CreateDate?: string;
-  CreatedBy?: string;
+  vendnum: string;
+  group?: string;
+  name?: string;
+  currcode?: string;
+  createDate?: string;
+  createdBy?: string;
 }

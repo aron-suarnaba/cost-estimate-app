@@ -110,7 +110,7 @@ export function AppSidebar({
           <div className="space-y-1">
             <NavItem icon={Package} label="Items" id="items" />
             <NavItem icon={Users} label="Vendors" id="vendors" />
-            <NavItem icon={Tags} label="Product Types (PType)" id="ptype" />
+            <NavItem icon={Tags} label="Paper Types (PType)" id="ptype" />
           </div>
         </div>
       </div>

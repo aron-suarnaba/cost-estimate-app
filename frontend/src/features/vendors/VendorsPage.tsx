@@ -74,10 +74,10 @@ export const VendorsPage: React.FC = () => {
     setFormMode("edit");
     setSelectedVendor(vendor);
     reset({
-      Vendnum: vendor.Vendnum,
-      Group: vendor.Group || "LOCAL",
-      Name: vendor.Name || "",
-      Currcode: vendor.Currcode || "PHP",
+      Vendnum: vendor.vendnum,
+      Group: vendor.group || "LOCAL",
+      Name: vendor.name || "",
+      Currcode: vendor.currcode || "PHP",
     });
     setSheetOpen(true);
   };
@@ -90,7 +90,7 @@ export const VendorsPage: React.FC = () => {
         window.alert("Vendor created successfully.");
       } else if (selectedVendor) {
         await api.put<VendorsResponseDto>(
-          `/Vendors/${selectedVendor.Vendnum}`,
+          `/Vendors/${selectedVendor.vendnum}`,
           values,
         );
         window.alert("Vendor updated successfully.");
@@ -107,13 +107,13 @@ export const VendorsPage: React.FC = () => {
   };
 
   const handleDelete = async (vendor: VendorsResponseDto) => {
-    const confirmed = window.confirm(`Delete vendor ${vendor.Vendnum}?`);
+    const confirmed = window.confirm(`Delete vendor ${vendor.vendnum}?`);
     if (!confirmed) return;
 
     try {
-      await api.delete(`/Vendors/${vendor.Vendnum}`);
+      await api.delete(`/Vendors/${vendor.vendnum}`);
       setVendors((current) =>
-        current.filter((item) => item.Vendnum !== vendor.Vendnum),
+        current.filter((item) => item.vendnum !== vendor.vendnum),
       );
       window.alert("Vendor deleted successfully.");
     } catch (err: any) {

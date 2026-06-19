@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -33,6 +34,7 @@ import { ItemCreateUpdateDto, ItemResponseDto } from "./types/item.types";
 
 export const ItemsPage: React.FC = () => {
   const [items, setItems] = useState<ItemResponseDto[]>([]);
+  const [pTypes, setPTypes] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,31 +51,128 @@ export const ItemsPage: React.FC = () => {
       prodGroup: "",
       pType: "",
       um: "",
-      gsm: undefined,
-      caliper: undefined,
-      ppr: undefined,
-      width: undefined,
-      length: undefined,
+      gsm: undefined as any,
+      caliper: undefined as any,
+      ppr: undefined as any,
+      cbnum: undefined as any, 
+      width: undefined as any,
+      length: undefined as any,
     },
   });
 
-  const { register, handleSubmit, reset } = form;
+  const { register, handleSubmit, reset, watch, setValue } = form;
 
-  const fetchItems = async () => {
+  const watchedProdGroup = watch("prodGroup");
+  const watchedPType = watch("pType");
+  const watchedUM = watch("um");
+  const watchedGsm = watch("gsm");
+  const watchedCaliper = watch("caliper");
+  const watchedPpr = watch("ppr"); 
+  const watchedCbnum = watch("cbnum"); 
+  const watchedWidth = watch("width");
+  const watchedLength = watch("length");
+
+  // 🌟 Combined Side-Effect: Handles Item Code and Formula Description Assembly
+  useEffect(() => {
+    if (formMode === "edit") return;
+
+    const pTypeStr = (watchedPType || "").toUpperCase().trim();
+
+    // 1. Code Generation Parsing Block
+    const formatSegment = (val: any): string => {
+      const num = typeof val === "string" ? parseFloat(val) : val;
+      if (num === undefined || num === null || isNaN(num) || num <= 0) return "";
+      const clamped = Math.min(Math.floor(num), 9999);
+      return String(clamped).padStart(4, "0");
+    };
+
+    const caliperSeg = formatSegment(watchedCaliper);
+    const pprSeg = formatSegment(watchedPpr);
+    const cbnumSeg = formatSegment(watchedCbnum); 
+    const gsmSeg = formatSegment(watchedGsm);
+    const widthSeg = formatSegment(watchedWidth);
+    const lengthSeg = formatSegment(watchedLength);
+
+    let uSymbol = "";
+    if (watchedUM === "RL") uSymbol = "R";
+    if (watchedUM === "SH") uSymbol = "S";
+
+    const generatedCode = `${pTypeStr}${caliperSeg}${pprSeg}${cbnumSeg}${gsmSeg}${widthSeg}${lengthSeg}${uSymbol}`;
+    setValue("itemCode", generatedCode);
+
+    // 2. Exact Formula Specification Block
+    const descSegments: string[] = [];
+
+    if (pTypeStr) {
+      descSegments.push(pTypeStr);
+    }
+
+    if (watchedCaliper !== undefined && watchedCaliper !== null && !isNaN(watchedCaliper)) {
+      descSegments.push(`Cal ${watchedCaliper}`);
+    }
+
+    if (watchedCbnum !== undefined && watchedCbnum !== null && !isNaN(watchedCbnum)) {
+      descSegments.push(`#${watchedCbnum}`);
+    }
+
+    if (watchedPpr !== undefined && watchedPpr !== null && !isNaN(watchedPpr)) {
+      if (watchedProdGroup === "Board") {
+        descSegments.push(`#${watchedPpr}`);
+      } else {
+        descSegments.push(`${watchedPpr}#`);
+      }
+    }
+
+    if (watchedGsm !== undefined && watchedGsm !== null && !isNaN(watchedGsm)) {
+      descSegments.push(`${watchedGsm}GSM`);
+    }
+
+    const validWidth = watchedWidth !== undefined && watchedWidth !== null && !isNaN(watchedWidth);
+    const validLength = watchedLength !== undefined && watchedLength !== null && !isNaN(watchedLength);
+    if (validWidth || validLength) {
+      const wLabel = validWidth ? watchedWidth : "0";
+      const lLabel = validLength ? watchedLength : "0";
+      descSegments.push(`${wLabel}X${lLabel}`);
+    }
+
+    const generatedDesc = descSegments.join(" ");
+    setValue("itemDesc", generatedDesc);
+
+  }, [
+    formMode, 
+    watchedProdGroup,
+    watchedPType, 
+    watchedUM, 
+    watchedGsm, 
+    watchedCaliper, 
+    watchedPpr, 
+    watchedCbnum, 
+    watchedWidth, 
+    watchedLength, 
+    setValue
+  ]);
+
+  const fetchData = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get<ItemResponseDto[]>("/Item");
-      setItems(response.data);
+      const [itemsRes, pTypeRes] = await Promise.all([
+        api.get<ItemResponseDto[]>("/Item"),
+        api.get<any[]>("/PType"),
+      ]);
+
+      setItems(itemsRes.data);
+      const parsedPTypes = pTypeRes.data.map(pt => typeof pt === 'object' ? pt.pType || pt.name : pt).filter(Boolean);
+      setPTypes(parsedPTypes);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to load items.");
+      setError(err.response?.data?.message || err.message || "Failed to load structural parameters.");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchItems();
+    fetchData();
   }, []);
 
   const openCreateSheet = () => {
@@ -82,14 +181,15 @@ export const ItemsPage: React.FC = () => {
     reset({
       itemCode: "",
       itemDesc: "",
-      prodGroup: "",
-      pType: "",
-      um: "",
-      gsm: undefined,
-      caliper: undefined,
-      ppr: undefined,
-      width: undefined,
-      length: undefined,
+      prodGroup: "Paper", 
+      pType: pTypes[0] || "",
+      um: "RL", 
+      gsm: undefined as any,
+      caliper: undefined as any,
+      ppr: undefined as any,
+      cbnum: undefined as any, 
+      width: undefined as any,
+      length: undefined as any,
     });
     setSheetOpen(true);
   };
@@ -100,12 +200,13 @@ export const ItemsPage: React.FC = () => {
     reset({
       itemCode: item.itemCode,
       itemDesc: item.itemDesc || "",
-      prodGroup: item.prodGroup || "",
+      prodGroup: item.prodGroup || "Paper",
       pType: item.pType || "",
-      um: item.um || "",
+      um: item.um || "RL",
       gsm: item.gsm,
       caliper: item.caliper,
       ppr: item.ppr,
+      cbnum: item.cbnum, 
       width: item.width,
       length: item.length,
     });
@@ -114,15 +215,27 @@ export const ItemsPage: React.FC = () => {
 
   const onSubmit = async (values: ItemCreateUpdateDto) => {
     setIsSaving(true);
+    
+    const payload = {
+      ...values,
+      itemCode: values.itemCode ? values.itemCode.toUpperCase().trim() : "",
+      gsm: values.gsm || 0,
+      caliper: values.caliper || 0,
+      ppr: values.ppr || 0,
+      cbnum: values.cbnum || 0, 
+      width: values.width || 0,
+      length: values.length || 0,
+    };
+
     try {
       if (formMode === "create") {
-        await api.post<ItemResponseDto>("/Item", values);
+        await api.post<ItemResponseDto>("/Item", payload);
         window.alert("Item created successfully.");
       } else if (selectedItem) {
-        await api.put<ItemResponseDto>(`/Item/${selectedItem.itemCode}`, values);
+        await api.put<ItemResponseDto>(`/Item/${selectedItem.itemCode}`, payload);
         window.alert("Item updated successfully.");
       }
-      await fetchItems();
+      await fetchData();
       setSheetOpen(false);
     } catch (err: any) {
       window.alert(err.response?.data?.message || err.message || "Failed to save item.");
@@ -152,6 +265,8 @@ export const ItemsPage: React.FC = () => {
       { accessorKey: "pType", header: "Type" },
       { accessorKey: "gsm", header: "GSM" },
       { accessorKey: "caliper", header: "Caliper" },
+      { accessorKey: "ppr", header: "PPR" },
+      { accessorKey: "cbnum", header: "CB Num" }, 
       { accessorKey: "width", header: "Width" },
       { accessorKey: "length", header: "Length" },
       { accessorKey: "um", header: "UOM" },
@@ -173,19 +288,14 @@ export const ItemsPage: React.FC = () => {
         },
       },
     ],
-    [],
+    [items]
   );
 
   const table = useReactTable({
     data: items,
     columns,
-    state: {
-      sorting,
-      globalFilter,
-    },
-    filterFns: {
-      includesString: filterFns.includesString,
-    },
+    state: { sorting, globalFilter },
+    filterFns: { includesString: filterFns.includesString },
     globalFilterFn: filterFns.includesString,
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
@@ -193,6 +303,8 @@ export const ItemsPage: React.FC = () => {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
   });
+
+  const selectStyle = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -276,49 +388,86 @@ export const ItemsPage: React.FC = () => {
         <SheetContent side="right">
           <SheetHeader>
             <SheetTitle>{formMode === "create" ? "Create Item" : "Edit Item"}</SheetTitle>
+            {/* Added Description to fulfill Radix UI standards and clear console warnings */}
+            <SheetDescription>
+              Fill out the details below to configure item properties. Item codes and descriptions are dynamically updated based on attributes.
+            </SheetDescription>
           </SheetHeader>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="space-y-2 text-sm text-slate-700">
+              <label className="space-y-2 text-sm text-slate-700 sm:col-span-2">
                 <span>Item Code</span>
-                <Input {...register("itemCode", { required: true })} disabled={formMode === "edit"} />
+                <Input 
+                  {...register("itemCode", { required: true, maxLength: 30 })} 
+                  maxLength={30}
+                  placeholder="AUTO-GENERATED FORMULA CODE"
+                  readOnly={true} 
+                  className="uppercase bg-slate-50 cursor-not-allowed text-slate-500 font-mono tracking-wider"
+                />
               </label>
-              <label className="space-y-2 text-sm text-slate-700">
+              
+              <label className="space-y-2 text-sm text-slate-700 sm:col-span-2">
                 <span>Description</span>
-                <Input {...register("itemDesc")} />
+                <Input {...register("itemDesc", { maxLength: 50 })} maxLength={50} placeholder="Auto-fills from formula, user-editable" />
               </label>
+
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Prod Group</span>
-                <Input {...register("prodGroup")} />
+                <select {...register("prodGroup", { maxLength: 20 })} className={selectStyle}>
+                  <option value="Paper">Paper</option>
+                  <option value="Board">Board</option>
+                  <option value="Others">Others</option>
+                </select>
               </label>
+
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Type</span>
-                <Input {...register("pType")} />
+                <select {...register("pType", { maxLength: 7 })} className={selectStyle}>
+                  {pTypes.length === 0 ? (
+                    <option value="">No types found...</option>
+                  ) : (
+                    pTypes.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))
+                  )}
+                </select>
               </label>
+
               <label className="space-y-2 text-sm text-slate-700">
                 <span>UOM</span>
-                <Input {...register("um")} />
+                <select {...register("um", { maxLength: 3 })} className={selectStyle}>
+                  <option value="RL">RL</option>
+                  <option value="SH">SH</option>
+                </select>
               </label>
+
               <label className="space-y-2 text-sm text-slate-700">
                 <span>GSM</span>
-                <Input type="number" step="0.1" {...register("gsm", { valueAsNumber: true })} />
+                <Input type="number" step="0.1" placeholder="0" {...register("gsm", { valueAsNumber: true })} />
               </label>
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Caliper</span>
-                <Input type="number" step="0.1" {...register("caliper", { valueAsNumber: true })} />
+                <Input type="number" step="0.1" placeholder="0" {...register("caliper", { valueAsNumber: true })} />
               </label>
+              
               <label className="space-y-2 text-sm text-slate-700">
-                <span>PPR</span>
-                <Input type="number" step="0.1" {...register("ppr", { valueAsNumber: true })} />
+                <span>{watchedProdGroup === "Board" ? "Chipboard No. (#VALUE)" : "Pounds/Ream (VALUE#)"}</span>
+                <Input type="number" step="0.1" placeholder="0" {...register("ppr", { valueAsNumber: true })} />
               </label>
+
+              <label className="space-y-2 text-sm text-slate-700">
+                <span>CB Num</span>
+                <Input type="number" placeholder="0" {...register("cbnum", { valueAsNumber: true })} />
+              </label>
+              
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Width</span>
-                <Input type="number" step="0.0001" {...register("width", { valueAsNumber: true })} />
+                <Input type="number" step="0.0001" placeholder="0" onInput={(e) => { if(e.currentTarget.value.length > 20) e.currentTarget.value = e.currentTarget.value.slice(0, 20) }} {...register("width", { valueAsNumber: true })} />
               </label>
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Length</span>
-                <Input type="number" step="0.0001" {...register("length", { valueAsNumber: true })} />
+                <Input type="number" step="0.0001" placeholder="0" onInput={(e) => { if(e.currentTarget.value.length > 20) e.currentTarget.value = e.currentTarget.value.slice(0, 20) }} {...register("length", { valueAsNumber: true })} />
               </label>
             </div>
 
@@ -336,4 +485,3 @@ export const ItemsPage: React.FC = () => {
     </div>
   );
 };
-

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { PaperBoardPricingResponseDto } from "../types";
+import { PaperBoardPricingResponseDto } from "@/features/pricing/types";
 
 export const usePricing = () => {
   const [pricing, setPricing] = useState<PaperBoardPricingResponseDto[]>([]);
@@ -14,7 +14,18 @@ export const usePricing = () => {
       setPricing(response.data);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to load pricing." );
+      // Enhanced error handling to capture exact C# exception details if available
+      const serverErrorMessage =
+        err.response?.data?.message ||
+        err.response?.data ||
+        err.message ||
+        "Failed to load pricing.";
+
+      setError(
+        typeof serverErrorMessage === "object"
+          ? JSON.stringify(serverErrorMessage)
+          : serverErrorMessage
+      );
     } finally {
       setIsLoading(false);
     }

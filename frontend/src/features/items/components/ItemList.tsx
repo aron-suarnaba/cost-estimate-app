@@ -33,6 +33,8 @@ export const ItemList: React.FC<ItemListProps> = ({ items }) => {
             <TableHead className="font-semibold text-slate-700">Type</TableHead>
             <TableHead className="font-semibold text-slate-700 text-right">GSM</TableHead>
             <TableHead className="font-semibold text-slate-700 text-right">Caliper (pt)</TableHead>
+            <TableHead className="font-semibold text-slate-700 text-right">PPR</TableHead>
+            <TableHead className="font-semibold text-slate-700 text-right">CB Num</TableHead> {/* Added */}
             <TableHead className="font-semibold text-slate-700 text-right">Width (in)</TableHead>
             <TableHead className="font-semibold text-slate-700 text-right">Length (in)</TableHead>
             <TableHead className="font-semibold text-slate-700">UOM</TableHead>
@@ -51,6 +53,8 @@ export const ItemList: React.FC<ItemListProps> = ({ items }) => {
               </TableCell>
               <TableCell className="text-right font-mono text-slate-600">{item.gsm ?? '—'}</TableCell>
               <TableCell className="text-right font-mono text-slate-600">{item.caliper ?? '—'}</TableCell>
+              <TableCell className="text-right font-mono text-slate-600">{item.ppr ?? '—'}</TableCell>
+              <TableCell className="text-right font-mono text-slate-600">{item.cbnum ?? '—'}</TableCell> {/* Added */}
               <TableCell className="text-right font-mono text-slate-600">
                 {item.width ? item.width.toFixed(4) : '—'}
               </TableCell>

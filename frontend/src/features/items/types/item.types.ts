@@ -1,4 +1,3 @@
-// Matches C# ItemCreateUpdateDto
 export interface ItemCreateUpdateDto {
   prodGroup: string;
   pType: string;
@@ -8,22 +7,23 @@ export interface ItemCreateUpdateDto {
   gsm: number;
   caliper: number;
   ppr: number;
+  cbnum: number;
   width: number;
   length: number;
 }
 
-// Matches C# ItemResponseDto
 export interface ItemResponseDto {
   prodGroup?: string;
   pType?: string;
   itemCode: string;
   itemDesc?: string;
   um?: string;
-  createDate?: string; // Dates are transferred as ISO strings
+  createDate?: string;
   createdBy?: string;
   gsm?: number;
   caliper?: number;
   ppr?: number;
+  cbnum?: number;
   width?: number;
   length?: number;
 }

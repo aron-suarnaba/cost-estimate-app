@@ -10,6 +10,7 @@ namespace backend.DTOs
         public int GSM { get; init; }
         public int Caliper { get; init; }
         public int PPR { get; init; }
+        public int Cbnum { get; init; }
         public decimal Width { get; init; }
         public decimal Length { get; init; }
     }
@@ -26,6 +27,7 @@ namespace backend.DTOs
         public int? GSM { get; init; }
         public int? Caliper { get; init; }
         public int? PPR { get; init; }
+        public int? Cbnum { get; init; } 
         public decimal? Width { get; init; }
         public decimal? Length { get; init; }
     }
