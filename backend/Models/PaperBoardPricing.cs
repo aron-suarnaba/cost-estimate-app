@@ -41,7 +41,6 @@ namespace backend.Models
         [Column(TypeName = "decimal(20,8)")]
         public decimal? Price_Bale { get; set; }
 
-        // Mapped exactly as provided, though a decimal date is highly unusual.
         [Column(TypeName = "datetime")]
         public DateTime? EffectiveDate { get; set; }
 

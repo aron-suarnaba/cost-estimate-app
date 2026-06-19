@@ -7,20 +7,21 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  getPaginationRowModel, // Added for pagination support
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { Edit3, Plus, Search, Trash2 } from "lucide-react";
+import { Edit3, Plus, Search, Trash2, ChevronsLeft, ChevronsRight } from "lucide-react"; // Imported Lucide icons for arrow navigation
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -29,7 +30,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PtypeCreateUpdateDto, PtypeResponseDto } from "@/features/ptype/types/ptype.types";
+import {
+  PtypeCreateUpdateDto,
+  PtypeResponseDto,
+} from "@/features/ptype/types/ptype.types";
 
 export const PtypesPage: React.FC = () => {
   const [ptypes, setPtypes] = useState<PtypeResponseDto[]>([]);
@@ -37,7 +41,9 @@ export const PtypesPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
-  const [selectedPtype, setSelectedPtype] = useState<PtypeResponseDto | null>(null);
+  const [selectedPtype, setSelectedPtype] = useState<PtypeResponseDto | null>(
+    null,
+  );
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
@@ -99,13 +105,20 @@ export const PtypesPage: React.FC = () => {
         await api.post<PtypeResponseDto>("/Ptype", payload);
         window.alert("Product type created successfully.");
       } else if (selectedPtype) {
-        await api.put<PtypeResponseDto>(`/Ptype/${selectedPtype.pType}`, payload);
+        await api.put<PtypeResponseDto>(
+          `/Ptype/${selectedPtype.pType}`,
+          payload,
+        );
         window.alert("Product type updated successfully.");
       }
       await fetchPtypes();
       setSheetOpen(false);
     } catch (err: any) {
-      window.alert(err.response?.data?.message || err.message || "Failed to save product type.");
+      window.alert(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to save product type.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -117,10 +130,16 @@ export const PtypesPage: React.FC = () => {
 
     try {
       await api.delete(`/Ptype/${ptype.pType}`);
-      setPtypes((current) => current.filter((item) => item.pType !== ptype.pType));
+      setPtypes((current) =>
+        current.filter((item) => item.pType !== ptype.pType),
+      );
       window.alert("Product type deleted successfully.");
     } catch (err: any) {
-      window.alert(err.response?.data?.message || err.message || "Failed to delete product type.");
+      window.alert(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to delete product type.",
+      );
     }
   };
 
@@ -141,7 +160,10 @@ export const PtypesPage: React.FC = () => {
       {
         accessorKey: "createDate",
         header: "Created",
-        cell: (info) => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString() : "—",
+        cell: (info) =>
+          info.getValue()
+            ? new Date(info.getValue() as string).toLocaleDateString()
+            : "—",
       },
       {
         id: "actions",
@@ -171,7 +193,7 @@ export const PtypesPage: React.FC = () => {
         },
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -190,6 +212,7 @@ export const PtypesPage: React.FC = () => {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(), // Activated Pagination Row Model
   });
 
   return (
@@ -233,10 +256,17 @@ export const PtypesPage: React.FC = () => {
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className={header.column.getCanSort() ? "cursor-pointer select-none" : undefined}
+                      className={
+                        header.column.getCanSort()
+                          ? "cursor-pointer select-none"
+                          : undefined
+                      }
                       onClick={header.column.getToggleSortingHandler()}
                     >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                       {header.column.getIsSorted() === "asc"
                         ? " ↑"
                         : header.column.getIsSorted() === "desc"
@@ -250,8 +280,13 @@ export const PtypesPage: React.FC = () => {
             <TableBody>
               {table.getRowModel().rows.length === 0 ? (
                 <TableRow>
-                  <TableCell className="h-24 text-center" colSpan={columns.length}>
-                    {isLoading ? "Loading product types..." : "No product types match your search."}
+                  <TableCell
+                    className="h-24 text-center"
+                    colSpan={columns.length}
+                  >
+                    {isLoading
+                      ? "Loading product types..."
+                      : "No product types match your search."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -260,7 +295,10 @@ export const PtypesPage: React.FC = () => {
                     <TableRow key={row.id}>
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -269,61 +307,116 @@ export const PtypesPage: React.FC = () => {
               )}
             </TableBody>
           </Table>
+
+          {/* Dynamic Pagination Control Bar using Lucide Icons */}
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50/50">
+            <span className="text-sm text-slate-500">
+              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount() || 1}
+            </span>
+
+            <div className="flex items-center gap-1">
+              {/* Go to first page */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+                title="First Page"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+
+              {/* Individual dynamic page numbers */}
+              {Array.from({ length: table.getPageCount() }, (_, i) => i).map((pageIdx) => (
+                <Button
+                  key={pageIdx}
+                  variant={table.getState().pagination.pageIndex === pageIdx ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 w-8 p-0 text-xs font-medium"
+                  onClick={() => table.setPageIndex(pageIdx)}
+                >
+                  {pageIdx + 1}
+                </Button>
+              ))}
+
+              {/* Go to last page */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                disabled={!table.getCanNextPage()}
+                title="Last Page"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right">
-          <SheetHeader>
-            <SheetTitle>{formMode === "create" ? "Create Product Type" : "Edit Product Type"}</SheetTitle>
-          </SheetHeader>
+      <Dialog open={sheetOpen} onOpenChange={setSheetOpen}>
+        <DialogContent className="sm:max-w-[525px] pb-0">
+          <DialogHeader>
+            <DialogTitle>
+              {formMode === "create"
+                ? "Create Product Type"
+                : "Edit Product Type"}
+            </DialogTitle>
+          </DialogHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Type Code</span>
-                {/* Max length bound to 7 characters and styled as uppercase text */}
-<Input 
-  {...register("pType", { required: true, maxLength: 7 })} 
-  maxLength={7}
-  placeholder="e.g. cas"
-  readOnly={formMode === "edit"}
-  className={`uppercase placeholder:normal-case ${
-    formMode === "edit" ? "bg-slate-50 cursor-not-allowed text-slate-500" : ""
-  }`}
-/>
+                <Input
+                  {...register("pType", { required: true, maxLength: 7 })}
+                  maxLength={7}
+                  placeholder="e.g. CAS"
+                  readOnly={formMode === "edit"}
+                  className={`uppercase placeholder:normal-case ${
+                    formMode === "edit"
+                      ? "bg-slate-50 cursor-not-allowed text-slate-500"
+                      : ""
+                  }`}
+                />
               </label>
+
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Description</span>
-                {/* Max length bound to 40 characters */}
-                <Input 
-                  {...register("ptypeDesc", { maxLength: 40 })} 
+                <Input
+                  {...register("ptypeDesc", { maxLength: 40 })}
                   maxLength={40}
                   placeholder="e.g. Coated Adhesives Satin"
                 />
               </label>
+
               <label className="space-y-2 text-sm text-slate-700 sm:col-span-2">
                 <span>Label</span>
-                {/* Fixed syntax structure error here */}
-                <Input 
-                  {...register("descLabel", { maxLength: 40 })} 
+                <Input
+                  {...register("descLabel", { maxLength: 40 })}
                   maxLength={40}
                   placeholder="e.g. CA Satin"
                 />
               </label>
             </div>
 
-            <SheetFooter className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <Button type="button" variant="outline" onClick={() => setSheetOpen(false)}>
+            <DialogFooter className="flex gap-2 pt-4 sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSheetOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={isSaving}>
                 {formMode === "create" ? "Create" : "Save"}
               </Button>
-            </SheetFooter>
+            </DialogFooter>
           </form>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

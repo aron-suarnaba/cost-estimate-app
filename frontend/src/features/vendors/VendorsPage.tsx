@@ -6,12 +6,13 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  getPaginationRowModel, // Added for pagination support
   SortingState,
   useReactTable,
   FilterFn,
 } from "@tanstack/react-table";
 import { rankItem } from "@tanstack/match-sorter-utils";
-import { Edit3, Plus, Search, Trash2 } from "lucide-react";
+import { Edit3, Plus, Search, Trash2, ChevronsLeft, ChevronsRight } from "lucide-react"; // Imported Lucide icon arrows
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -199,6 +200,7 @@ export const VendorsPage: React.FC = () => {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(), // Activated Pagination Row Model
     filterFns: {
       fuzzyFilter,
     },
@@ -296,6 +298,52 @@ export const VendorsPage: React.FC = () => {
               )}
             </TableBody>
           </Table>
+
+          {/* Dynamic Pagination Bar using Lucide Icons */}
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50/50">
+            <span className="text-sm text-slate-500">
+              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount() || 1}
+            </span>
+
+            <div className="flex items-center gap-1">
+              {/* Go to first page */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+                title="First Page"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+
+              {/* Individual numeric controls */}
+              {Array.from({ length: table.getPageCount() }, (_, i) => i).map((pageIdx) => (
+                <Button
+                  key={pageIdx}
+                  variant={table.getState().pagination.pageIndex === pageIdx ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 w-8 p-0 text-xs font-medium"
+                  onClick={() => table.setPageIndex(pageIdx)}
+                >
+                  {pageIdx + 1}
+                </Button>
+              ))}
+
+              {/* Go to last page */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                disabled={!table.getCanNextPage()}
+                title="Last Page"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  getPaginationRowModel, // Added for pagination
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
@@ -15,13 +16,13 @@ import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -38,7 +39,7 @@ export const ItemsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [selectedItem, setSelectedItem] = useState<ItemResponseDto | null>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -72,13 +73,12 @@ export const ItemsPage: React.FC = () => {
   const watchedWidth = watch("width");
   const watchedLength = watch("length");
 
-  // 🌟 Combined Side-Effect: Handles Item Code and Formula Description Assembly
+  // Side-Effect: Item Code and Description Formula Builder
   useEffect(() => {
     if (formMode === "edit") return;
 
     const pTypeStr = (watchedPType || "").toUpperCase().trim();
 
-    // 1. Code Generation Parsing Block
     const formatSegment = (val: any): string => {
       const num = typeof val === "string" ? parseFloat(val) : val;
       if (num === undefined || num === null || isNaN(num) || num <= 0) return "";
@@ -100,12 +100,9 @@ export const ItemsPage: React.FC = () => {
     const generatedCode = `${pTypeStr}${caliperSeg}${pprSeg}${cbnumSeg}${gsmSeg}${widthSeg}${lengthSeg}${uSymbol}`;
     setValue("itemCode", generatedCode);
 
-    // 2. Exact Formula Specification Block
     const descSegments: string[] = [];
 
-    if (pTypeStr) {
-      descSegments.push(pTypeStr);
-    }
+    if (pTypeStr) descSegments.push(pTypeStr);
 
     if (watchedCaliper !== undefined && watchedCaliper !== null && !isNaN(watchedCaliper)) {
       descSegments.push(`Cal ${watchedCaliper}`);
@@ -175,7 +172,7 @@ export const ItemsPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const openCreateSheet = () => {
+  const openCreateDialog = () => {
     setFormMode("create");
     setSelectedItem(null);
     reset({
@@ -191,10 +188,10 @@ export const ItemsPage: React.FC = () => {
       width: undefined as any,
       length: undefined as any,
     });
-    setSheetOpen(true);
+    setDialogOpen(true);
   };
 
-  const openEditSheet = (item: ItemResponseDto) => {
+  const openEditDialog = (item: ItemResponseDto) => {
     setFormMode("edit");
     setSelectedItem(item);
     reset({
@@ -210,7 +207,7 @@ export const ItemsPage: React.FC = () => {
       width: item.width,
       length: item.length,
     });
-    setSheetOpen(true);
+    setDialogOpen(true);
   };
 
   const onSubmit = async (values: ItemCreateUpdateDto) => {
@@ -236,7 +233,7 @@ export const ItemsPage: React.FC = () => {
         window.alert("Item updated successfully.");
       }
       await fetchData();
-      setSheetOpen(false);
+      setDialogOpen(false);
     } catch (err: any) {
       window.alert(err.response?.data?.message || err.message || "Failed to save item.");
     } finally {
@@ -277,7 +274,7 @@ export const ItemsPage: React.FC = () => {
           const item = row.original;
           return (
             <div className="flex items-center gap-2">
-              <Button variant="secondary" size="icon" onClick={() => openEditSheet(item)} title="Edit item">
+              <Button variant="secondary" size="icon" onClick={() => openEditDialog(item)} title="Edit item">
                 <Edit3 className="h-4 w-4" />
               </Button>
               <Button variant="destructive" size="icon" onClick={() => handleDelete(item)} title="Delete item">
@@ -288,7 +285,7 @@ export const ItemsPage: React.FC = () => {
         },
       },
     ],
-    [items]
+    [pTypes]
   );
 
   const table = useReactTable({
@@ -302,6 +299,7 @@ export const ItemsPage: React.FC = () => {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(), // Added for pagination configuration
   });
 
   const selectStyle = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
@@ -333,7 +331,7 @@ export const ItemsPage: React.FC = () => {
                 <Search className="h-4 w-4" />
               </span>
             </div>
-            <Button onClick={openCreateSheet} className="whitespace-nowrap">
+            <Button onClick={openCreateDialog} className="whitespace-nowrap">
               <Plus className="h-4 w-4" />
               <span className="ml-2">New Item</span>
             </Button>
@@ -381,23 +379,66 @@ export const ItemsPage: React.FC = () => {
               )}
             </TableBody>
           </Table>
+
+          {/* Dynamic Pagination Section - Added << 1 2 3 >> Style Controls */}
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50/50">
+            <span className="text-sm text-slate-500">
+              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount() || 1}
+            </span>
+            
+            <div className="flex items-center gap-1">
+              {/* First Page Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0 text-xs font-semibold"
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+              >
+                {'<<'}
+              </Button>
+
+              {/* Dynamic Number Selectors Loop */}
+              {Array.from({ length: table.getPageCount() }, (_, index) => index).map((pageIndex) => (
+                <Button
+                  key={pageIndex}
+                  variant={table.getState().pagination.pageIndex === pageIndex ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 w-8 p-0 text-xs font-medium"
+                  onClick={() => table.setPageIndex(pageIndex)}
+                >
+                  {pageIndex + 1}
+                </Button>
+              ))}
+
+              {/* Last Page Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0 text-xs font-semibold"
+                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                disabled={!table.getCanNextPage()}
+              >
+                {'>>'}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right">
-          <SheetHeader>
-            <SheetTitle>{formMode === "create" ? "Create Item" : "Edit Item"}</SheetTitle>
-            {/* Added Description to fulfill Radix UI standards and clear console warnings */}
-            <SheetDescription>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen} >
+        <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto pb-0">
+          <DialogHeader>
+            <DialogTitle>{formMode === "create" ? "Create Item" : "Edit Item"}</DialogTitle>
+            <DialogDescription>
               Fill out the details below to configure item properties. Item codes and descriptions are dynamically updated based on attributes.
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="space-y-2 text-sm text-slate-700 sm:col-span-2">
-                <span>Item Code</span>
+              <div className="space-y-2 text-sm text-slate-700 sm:col-span-2">
+                <span className="font-medium text-slate-900">Item Code</span>
                 <Input 
                   {...register("itemCode", { required: true, maxLength: 30 })} 
                   maxLength={30}
@@ -405,24 +446,24 @@ export const ItemsPage: React.FC = () => {
                   readOnly={true} 
                   className="uppercase bg-slate-50 cursor-not-allowed text-slate-500 font-mono tracking-wider"
                 />
-              </label>
+              </div>
               
-              <label className="space-y-2 text-sm text-slate-700 sm:col-span-2">
-                <span>Description</span>
+              <div className="space-y-2 text-sm text-slate-700 sm:col-span-2">
+                <span className="font-medium text-slate-900">Description</span>
                 <Input {...register("itemDesc", { maxLength: 50 })} maxLength={50} placeholder="Auto-fills from formula, user-editable" />
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm text-slate-700">
-                <span>Prod Group</span>
+              <div className="space-y-2 text-sm text-slate-700">
+                <span className="font-medium text-slate-900">Prod Group</span>
                 <select {...register("prodGroup", { maxLength: 20 })} className={selectStyle}>
                   <option value="Paper">Paper</option>
                   <option value="Board">Board</option>
                   <option value="Others">Others</option>
                 </select>
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm text-slate-700">
-                <span>Type</span>
+              <div className="space-y-2 text-sm text-slate-700">
+                <span className="font-medium text-slate-900">Type</span>
                 <select {...register("pType", { maxLength: 7 })} className={selectStyle}>
                   {pTypes.length === 0 ? (
                     <option value="">No types found...</option>
@@ -432,56 +473,58 @@ export const ItemsPage: React.FC = () => {
                     ))
                   )}
                 </select>
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm text-slate-700">
-                <span>UOM</span>
+              <div className="space-y-2 text-sm text-slate-700">
+                <span className="font-medium text-slate-900">UOM</span>
                 <select {...register("um", { maxLength: 3 })} className={selectStyle}>
                   <option value="RL">RL</option>
                   <option value="SH">SH</option>
                 </select>
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm text-slate-700">
-                <span>GSM</span>
+              <div className="space-y-2 text-sm text-slate-700">
+                <span className="font-medium text-slate-900">GSM</span>
                 <Input type="number" step="0.1" placeholder="0" {...register("gsm", { valueAsNumber: true })} />
-              </label>
-              <label className="space-y-2 text-sm text-slate-700">
-                <span>Caliper</span>
-                <Input type="number" step="0.1" placeholder="0" {...register("caliper", { valueAsNumber: true })} />
-              </label>
-              
-              <label className="space-y-2 text-sm text-slate-700">
-                <span>{watchedProdGroup === "Board" ? "Chipboard No. (#VALUE)" : "Pounds/Ream (VALUE#)"}</span>
-                <Input type="number" step="0.1" placeholder="0" {...register("ppr", { valueAsNumber: true })} />
-              </label>
+              </div>
 
-              <label className="space-y-2 text-sm text-slate-700">
-                <span>CB Num</span>
-                <Input type="number" placeholder="0" {...register("cbnum", { valueAsNumber: true })} />
-              </label>
+              <div className="space-y-2 text-sm text-slate-700">
+                <span className="font-medium text-slate-900">Caliper</span>
+                <Input type="number" step="0.1" placeholder="0" {...register("caliper", { valueAsNumber: true })} />
+              </div>
               
-              <label className="space-y-2 text-sm text-slate-700">
-                <span>Width</span>
+              <div className="space-y-2 text-sm text-slate-700">
+                <span className="font-medium text-slate-900">{watchedProdGroup === "Board" ? "Chipboard No. (#VALUE)" : "Pounds/Ream (VALUE#)"}</span>
+                <Input type="number" step="0.1" placeholder="0" {...register("ppr", { valueAsNumber: true })} />
+              </div>
+
+              <div className="space-y-2 text-sm text-slate-700">
+                <span className="font-medium text-slate-900">CB Num</span>
+                <Input type="number" placeholder="0" {...register("cbnum", { valueAsNumber: true })} />
+              </div>
+              
+              <div className="space-y-2 text-sm text-slate-700">
+                <span className="font-medium text-slate-900">Width</span>
                 <Input type="number" step="0.0001" placeholder="0" onInput={(e) => { if(e.currentTarget.value.length > 20) e.currentTarget.value = e.currentTarget.value.slice(0, 20) }} {...register("width", { valueAsNumber: true })} />
-              </label>
-              <label className="space-y-2 text-sm text-slate-700">
-                <span>Length</span>
+              </div>
+
+              <div className="space-y-2 text-sm text-slate-700 sm:col-span-2">
+                <span className="font-medium text-slate-900">Length</span>
                 <Input type="number" step="0.0001" placeholder="0" onInput={(e) => { if(e.currentTarget.value.length > 20) e.currentTarget.value = e.currentTarget.value.slice(0, 20) }} {...register("length", { valueAsNumber: true })} />
-              </label>
+              </div>
             </div>
 
-            <SheetFooter className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <Button type="button" variant="outline" onClick={() => setSheetOpen(false)}>
+            <DialogFooter className="flex gap-2 pt-4 sm:justify-end">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSaving}>
                 {formMode === "create" ? "Create" : "Save"}
               </Button>
-            </SheetFooter>
+            </DialogFooter>
           </form>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
